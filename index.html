@@ -36,25 +36,26 @@
     .cell{width:var(--cell);height:var(--cell);border-radius:5px;border:2px solid #aaa3d7;padding:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:calc(var(--cell)*.48);line-height:1;cursor:pointer;color:#333;background:linear-gradient(145deg,#e3e0ff,#bbb5ed);box-shadow:inset 2px 2px 0 rgba(255,255,255,.72),inset -2px -2px 0 rgba(95,87,153,.22)}
     .cell:active:not(.open){transform:translateY(1px)}.cell.open{cursor:default;background:var(--open);border:1px solid #d8d0cc;box-shadow:none;border-radius:2px}.cell.marked{background:linear-gradient(145deg,#d8f3fa,#a8dce8);font-size:calc(var(--cell)*.38)}.cell.wrong{background:#ffe0e6;outline:2px solid var(--danger)}.cell.triggered{background:#ffd2db}
     .cell.mine-shown,.cell.resolved{font-size:calc(var(--cell)*.48);color:#7b3d7c}.n1{color:#3158b5}.n2{color:#22854b}.n3{color:#d74b4b}.n4{color:#7040b2}.n5{color:#8d351c}.n6{color:#19828c}.n7{color:#222}.n8{color:#777}
+    .protected-zone[hidden]{display:none}
     .protected-zone{position:absolute;z-index:5;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;background:rgba(116,65,164,.52);border:2px solid rgba(83,39,128,.82);color:#fff;font-weight:900;letter-spacing:.08em;border-radius:7px;cursor:not-allowed;backdrop-filter:blur(1px)}
-    .side{display:grid;gap:12px}.panel{border:1px solid #e4d8e2;border-radius:16px;background:rgba(255,255,255,.9);padding:12px;box-shadow:0 8px 20px rgba(96,76,91,.08)}
-    .panel h2{font-size:15px;margin:0 0 10px}.skill-list{display:grid;gap:8px}.skill-btn{width:100%;min-height:50px;text-align:left;border:1px solid #d7cce3;border-radius:12px;background:#faf8ff;padding:8px 10px;cursor:pointer;color:var(--text)}.skill-btn strong{display:block;font-size:14px}.skill-btn small{display:block;color:var(--muted);margin-top:2px}.skill-btn:disabled{cursor:not-allowed;opacity:.48;background:#eee}.skill-btn.armed{outline:2px solid #8d65ba;background:#eee5ff}
-    .chat{height:330px;overflow:auto;border:1px solid #e2dce4;border-radius:12px;background:#fffdfd;padding:10px;display:flex;flex-direction:column;gap:8px}.msg{max-width:95%;padding:8px 10px;border-radius:12px;background:#f4f0f6;font-size:13px;line-height:1.5}.msg.system{background:#f5f1ff}.msg.character{background:#fff0f5}.msg.result{background:#eee5ff;font-weight:800;font-size:14px}.msg-name{font-weight:800;margin-right:4px}
+    .side{display:grid;gap:8px}.panel{border:1px solid #e4d8e2;border-radius:16px;background:rgba(255,255,255,.9);padding:10px;box-shadow:0 8px 20px rgba(96,76,91,.08)}
+    .panel h2{font-size:14px;margin:0 0 7px}.skill-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.skill-btn{width:100%;min-height:40px;text-align:center;border:1px solid #d7cce3;border-radius:10px;background:#faf8ff;padding:5px 6px;cursor:pointer;color:var(--text);overflow:hidden}.skill-btn strong{display:block;font-size:13px;line-height:1.2}.skill-btn small{display:block;color:var(--muted);margin-top:2px;font-size:10px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.skill-btn:disabled{cursor:not-allowed;opacity:.48;background:#eee}.skill-btn.armed{outline:2px solid #8d65ba;background:#eee5ff}
+    .chat{height:455px;overflow:auto;border:1px solid #e2dce4;border-radius:12px;background:#fffdfd;padding:10px;display:flex;flex-direction:column;gap:8px}.msg{max-width:95%;padding:8px 10px;border-radius:12px;background:#f4f0f6;font-size:13px;line-height:1.5}.msg.system{background:#f5f1ff}.msg.character{background:#fff0f5}.msg.result{background:#eee5ff;font-weight:800;font-size:14px}.msg-name{font-weight:800;margin-right:4px}
     .options{display:flex;align-items:center;gap:9px;margin-top:10px;font-size:13px}.options input{width:19px;height:19px;accent-color:var(--pink)}
     .overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(255,250,252,.82);backdrop-filter:blur(3px);border-radius:18px;z-index:10}.overlay.show{display:flex}.result-card{width:min(420px,92%);text-align:center;border:2px solid var(--pink);background:rgba(255,255,255,.97);border-radius:22px;padding:22px 18px 18px;box-shadow:0 16px 36px rgba(104,78,94,.22)}.result-title{font-size:28px;color:#e7618d;font-weight:900;margin-bottom:10px}.result-copy{font-size:17px;line-height:1.55;margin-bottom:6px}.result-time{font-size:14px;color:var(--muted);margin-bottom:14px}.again{border:1px solid #ec789d;background:#ffdbe7;color:#d64e79;min-height:44px;padding:0 28px;border-radius:14px;font-weight:800;cursor:pointer}
     .legend{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}.legend-item{display:flex;align-items:center;gap:6px}.legend-box{width:18px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900}.legend-closed{background:#c9c4f2;border:2px solid #aaa3d7}.legend-open{background:#fffdf9;border:1px solid #d8d0cc}.legend-cat{background:#d8f3fa;border:1px solid #a8dce8;color:#7b3d7c}
-    @media(max-width:880px){.play-layout{grid-template-columns:1fr}.side{grid-template-columns:1fr 1fr}.chat{height:260px}}
-    @media(max-width:680px){.topbar{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr 1fr}.new-btn{grid-column:1/-1}.side{grid-template-columns:1fr}:root{--cell:32px}}
+    @media(max-width:880px){.play-layout{grid-template-columns:1fr}.side{grid-template-columns:1fr}.chat{height:360px}}
+    @media(max-width:680px){.topbar{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr 1fr}.new-btn{grid-column:1/-1}.skill-list{grid-template-columns:repeat(4,minmax(0,1fr))}.skill-btn small{display:none}.chat{height:320px}:root{--cell:32px}}
     @media(max-width:430px){h1{font-size:21px}.hud-card{min-height:65px}.hud-value{font-size:23px}:root{--cell:30px}.setup{display:block}.partner-picks{margin-bottom:8px}}
   </style>
 </head>
 <body>
 <main class="app">
   <section class="topbar">
-    <div><h1>蘑托车扫雷</h1><div class="subtitle">馍馍与伙伴们一起寻找猫头</div></div>
+    <div><h1>讨伐叛逆的蘑托车</h1><div class="subtitle">馍馍与伙伴们一起感化猫头</div></div>
     <div class="toolbar">
       <label><span>棋盘难度</span><select id="difficulty"><option value="beginner">初级：9 × 9，10 个猫头</option><option value="intermediate">中级：16 × 16，40 个猫头</option><option value="expert">高级：30 × 16，99 个猫头</option></select></label>
-      <label><span>挑战对象</span><select id="villainMode"><option value="weak">弱小的蘑托车（没有技能）</option><option value="normal" selected>普通蘑托车（保护区＋骰子判定）</option></select></label>
+      <label><span>挑战对象</span><select id="villainMode"><option value="weak">弱小的蘑托车（没有技能）</option><option value="normal" selected>普通蘑托车（保护区＋伙伴骰子判定）</option></select></label>
       <button class="new-btn" id="newGame" type="button">新游戏</button>
     </div>
   </section>
@@ -164,6 +165,7 @@
   function performSkill(key){
     if(ended)return;const def=partnerDefs[key],s=partnerStates[key];if(!s||s.used||s.locked||s.cooldown>0)return;
     if(!started){addMessage("请先打开一个格子，再使用伙伴技能。");return}
+    if(key==="taoba"){executeSkill(key);s.used=true;renderSkills();return}
     if(villainMode==="normal"){
       const outcome=rollOutcome(),[a,b]=dicePair(outcome);addMessage(`${def.name}掷出${a}点，蘑托车掷出${b}点。`);
       if(outcome==="tie"){s.cooldown=1;addMessage("双方平局。再打开1个安全格后可以重试。");renderSkills();return}
@@ -186,7 +188,7 @@
   function renderSkills(){
     skillList.replaceChildren();for(const key of selectedPartners){const d=partnerDefs[key],s=partnerStates[key],btn=document.createElement("button");btn.type="button";btn.className="skill-btn"+(key==="taoba"&&taobaArmed?" armed":"");
       let status=d.desc;if(s.used)status="本局已使用";else if(s.locked)status="本局已被蘑托车阻止";else if(s.cooldown>0)status=`再打开${s.cooldown}个安全格后可重试`;else if(key==="taoba"&&taobaArmed)status="等待确认下一次点击";
-      btn.innerHTML=`<strong>${d.name}</strong><small>${status}</small>`;btn.disabled=ended||s.used||s.locked||s.cooldown>0||(key==="taoba"&&taobaArmed);btn.addEventListener("click",()=>performSkill(key));skillList.appendChild(btn)}
+      btn.innerHTML=`<strong>${d.name}</strong><small>${status}</small>`;btn.title=`${d.name}：${status}`;btn.disabled=ended||s.used||s.locked||s.cooldown>0||(key==="taoba"&&taobaArmed);btn.addEventListener("click",()=>performSkill(key));skillList.appendChild(btn)}
     if(!selectedPartners.length){const p=document.createElement("div");p.className="hint";p.textContent="本局没有携带伙伴。";skillList.appendChild(p)}
   }
   function onSafeOpened(before){const gained=revealedSafe-before;if(gained>0)countCooldowns(gained)}
@@ -207,7 +209,7 @@
     partnerStates={};selectedPartners.forEach(k=>partnerStates[k]={used:false,locked:false,failures:0,cooldown:0});cells=[];started=false;ended=false;marks=0;revealedSafe=0;resolvedMines=0;seconds=0;partnerHelpUsed=false;taobaArmed=false;zone=null;zoneActive=false;chatEl.replaceChildren();boardEl.replaceChildren();overlay.classList.remove("show");setStatus("准备中");markModeEl.checked=false;
     const size=width>=25?24:width>=16?28:34;document.documentElement.style.setProperty("--cell",size+"px");boardEl.style.gridTemplateColumns=`repeat(${width},var(--cell))`;
     for(let i=0;i<width*height;i++){const el=document.createElement("button");el.type="button";el.className="cell";el.dataset.i=i;el.setAttribute("role","gridcell");el.setAttribute("aria-label","未探索的格子");boardEl.appendChild(el);cells.push({mine:false,near:0,open:false,marked:false,wrong:false,triggered:false,resolved:false,el})}
-    if(villainMode==="normal"){chooseZone();addMessage("普通蘑托车划出了一片猫头保护区。打开20%的安全格后保护区解除。","蘑托车","character")}else{zoneEl.hidden=true;addMessage("这次挑战的是弱小的蘑托车。蘑托车没有任何技能。")}
+    if(villainMode==="normal"){chooseZone();addMessage("普通蘑托车划出了一片猫头保护区。打开20%的安全格后保护区解除。桃爸的守护不会受到骰子干扰。","蘑托车","character")}else{zoneEl.hidden=true;addMessage("这次挑战的是弱小的蘑托车。蘑托车没有任何技能。")}
     addMessage(selectedPartners.length?`本局伙伴：${selectedPartners.map(k=>partnerDefs[k].name).join("、")}。`:"馍馍决定独自挑战。馍馍没有携带伙伴。");addMessage("点击任意格开始。");updateHud();renderSkills();requestAnimationFrame(positionZone)
   }
 
