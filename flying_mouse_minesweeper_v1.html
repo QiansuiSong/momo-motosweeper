@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f8d9e7">
+  <title>飞鼠扫雷</title>
+  <style>
+    :root{
+      --bg:#fffaf6;
+      --panel:#fff;
+      --pink:#ef83a8;
+      --pink-soft:#fde5ee;
+      --lavender:#cfc9f4;
+      --lavender-dark:#9f97d8;
+      --open:#fffdf9;
+      --line:#d9d1cf;
+      --text:#3f3938;
+      --muted:#827978;
+      --danger:#e95b73;
+      --shadow:0 12px 30px rgba(96,76,91,.15);
+      --cell:34px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 10%,rgba(255,220,233,.75),transparent 28%),
+        radial-gradient(circle at 90% 0%,rgba(221,218,255,.75),transparent 25%),
+        var(--bg);
+    }
+    button,select,input{font:inherit}
+    .app{
+      width:min(980px,100%);
+      margin:0 auto;
+      padding:18px 14px 30px;
+    }
+    .topbar{
+      display:grid;
+      grid-template-columns:1.3fr auto;
+      gap:14px;
+      align-items:end;
+      margin-bottom:14px;
+    }
+    .title-wrap{display:flex;gap:12px;align-items:center}
+    .title-icon{width:58px;height:58px;flex:none}
+    h1{font-size:24px;margin:0 0 3px}
+    .subtitle{color:var(--muted);font-size:13px}
+    .toolbar{
+      display:grid;
+      grid-template-columns:minmax(170px,1fr) auto;
+      gap:10px;
+    }
+    label span{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+    select,.new-btn,.control{
+      border:1px solid #dcced5;
+      background:#fff;
+      border-radius:14px;
+      min-height:44px;
+    }
+    select{width:100%;padding:0 12px}
+    .new-btn{
+      padding:0 18px;
+      color:#7b5aa7;
+      font-weight:700;
+      background:linear-gradient(#f5f1ff,#ddd6ff);
+      border-color:#b9ace8;
+      box-shadow:inset 0 -3px 0 rgba(108,91,178,.18);
+      cursor:pointer;
+    }
+    .new-btn:active{transform:translateY(1px)}
+    .hud{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .hud-card{
+      min-height:74px;
+      padding:8px 10px;
+      border:1px solid #ead8df;
+      border-radius:16px;
+      background:rgba(255,255,255,.87);
+      text-align:center;
+    }
+    .hud-label{font-size:12px;color:var(--muted);margin-bottom:3px}
+    .hud-value{
+      font-size:28px;
+      letter-spacing:2px;
+      font-variant-numeric:tabular-nums;
+      color:#e75d89;
+      font-weight:800;
+    }
+    .status-btn{
+      border:none;background:transparent;padding:0;cursor:pointer;
+      width:44px;height:44px;margin:auto;display:block
+    }
+    .status-btn svg{width:100%;height:100%}
+    .options{
+      display:flex;justify-content:space-between;align-items:center;
+      gap:12px;flex-wrap:wrap;margin-bottom:12px
+    }
+    .switch-row{display:flex;align-items:center;gap:9px;font-size:14px}
+    .switch-row input{width:20px;height:20px;accent-color:var(--pink)}
+    .hint{font-size:12px;color:var(--muted)}
+    .board-shell{
+      position:relative;
+      border:1px solid #d9d1df;
+      background:rgba(255,255,255,.72);
+      border-radius:18px;
+      padding:10px;
+      box-shadow:var(--shadow);
+      overflow:auto;
+    }
+    #board{
+      display:grid;
+      gap:2px;
+      width:max-content;
+      margin:auto;
+      padding:5px;
+      border-radius:10px;
+      background:#aaa2c8;
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action:manipulation;
+    }
+    .cell{
+      width:var(--cell);
+      height:var(--cell);
+      border-radius:5px;
+      border:2px solid #aaa3d7;
+      padding:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      font-size:calc(var(--cell)*.55);
+      line-height:1;
+      cursor:pointer;
+      color:#333;
+      background:linear-gradient(145deg,#e3e0ff,#bbb5ed);
+      box-shadow:
+        inset 2px 2px 0 rgba(255,255,255,.72),
+        inset -2px -2px 0 rgba(95,87,153,.22);
+    }
+    .cell:active:not(.open){transform:translateY(1px)}
+    .cell.open{
+      cursor:default;
+      background:var(--open);
+      border:1px solid #d8d0cc;
+      box-shadow:none;
+      border-radius:2px;
+    }
+    .cell.marked{background:linear-gradient(145deg,#d8f3fa,#a8dce8)}
+    .cell.wrong{background:#ffe0e6;outline:2px solid var(--danger)}
+    .cell.triggered{animation:shake .35s linear;background:#ffd2db}
+    .cell .sprite{width:90%;height:90%;display:block}
+    .n1{color:#3158b5}.n2{color:#22854b}.n3{color:#d74b4b}.n4{color:#7040b2}
+    .n5{color:#8d351c}.n6{color:#19828c}.n7{color:#222}.n8{color:#777}
+    .legend{
+      display:flex;justify-content:center;gap:18px;flex-wrap:wrap;
+      margin-top:12px;font-size:12px;color:var(--muted)
+    }
+    .legend-item{display:flex;align-items:center;gap:6px}
+    .legend-box{width:18px;height:18px;border-radius:3px}
+    .legend-closed{background:#c9c4f2;border:2px solid #aaa3d7}
+    .legend-open{background:#fffdf9;border:1px solid #d8d0cc}
+    .legend-icon{width:22px;height:22px}
+    #message{text-align:center;color:var(--muted);font-size:13px;margin-top:10px}
+    .overlay{
+      position:absolute;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:rgba(255,250,252,.78);
+      backdrop-filter:blur(3px);
+      border-radius:18px;
+    }
+    .overlay.show{display:flex}
+    .result-card{
+      width:min(360px,90%);
+      text-align:center;
+      border:2px solid var(--pink);
+      background:rgba(255,255,255,.96);
+      border-radius:24px;
+      padding:22px 18px 18px;
+      box-shadow:0 16px 36px rgba(104,78,94,.22);
+      animation:pop .28s ease-out;
+    }
+    .result-title{font-size:30px;color:#e7618d;font-weight:900;margin:0 0 6px}
+    .result-art{width:190px;max-width:68%;margin:4px auto 6px}
+    .result-copy{font-size:16px;margin:2px 0 4px}
+    .result-time{font-size:14px;color:var(--muted);margin-bottom:14px}
+    .again{
+      border:1px solid #ec789d;
+      background:#ffdbe7;
+      color:#d64e79;
+      min-height:46px;
+      padding:0 28px;
+      border-radius:16px;
+      font-weight:800;
+      cursor:pointer
+    }
+    .sparkle{animation:bob 1.2s ease-in-out infinite alternate}
+    @keyframes pop{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+    @keyframes bob{to{transform:translateY(-4px)}}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+    @media(max-width:680px){
+      .topbar{grid-template-columns:1fr}
+      .toolbar{grid-template-columns:1fr auto}
+      :root{--cell:32px}
+    }
+    @media(max-width:430px){
+      .title-icon{width:48px;height:48px}
+      h1{font-size:21px}
+      .hud-card{min-height:68px}
+      .hud-value{font-size:24px}
+      :root{--cell:30px}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="topbar">
+      <div class="title-wrap">
+        <div class="title-icon" id="brandIcon" aria-hidden="true"></div>
+        <div>
+          <h1>飞鼠扫雷</h1>
+          <div class="subtitle">找到所有藏起来的小飞鼠</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <label>
+          <span>难度</span>
+          <select id="difficulty">
+            <option value="beginner">初级：9 × 9，10 只</option>
+            <option value="intermediate">中级：16 × 16，40 只</option>
+            <option value="expert">高级：30 × 16，99 只</option>
+          </select>
+        </label>
+        <button class="new-btn" id="newGame" type="button">新游戏</button>
+      </div>
+    </section>
+
+    <section class="hud">
+      <div class="hud-card">
+        <div class="hud-label">剩余飞鼠</div>
+        <div class="hud-value" id="remaining">010</div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label">状态</div>
+        <button class="status-btn" id="statusButton" type="button" aria-label="重新开始"></button>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label">时间</div>
+        <div class="hud-value" id="timer">000</div>
+      </div>
+    </section>
+
+    <section class="options">
+      <label class="switch-row">
+        <input id="markMode" type="checkbox">
+        <span>飞鼠标记模式</span>
+      </label>
+      <div class="hint">电脑：左键翻开，右键标记。手机：开启标记模式后点击格子。</div>
+    </section>
+
+    <section class="board-shell">
+      <div id="board" role="grid" aria-label="扫雷棋盘"></div>
+      <div class="overlay" id="overlay" aria-live="polite">
+        <div class="result-card">
+          <div class="result-title" id="resultTitle"></div>
+          <div class="result-art" id="resultArt"></div>
+          <div class="result-copy" id="resultCopy"></div>
+          <div class="result-time" id="resultTime"></div>
+          <button class="again" id="again" type="button">再来一局</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="legend">
+      <div class="legend-item"><span class="legend-box legend-closed"></span>未探索</div>
+      <div class="legend-item"><span class="legend-box legend-open"></span>已翻开</div>
+      <div class="legend-item"><span class="legend-icon" id="legendMouse"></span>疑似有飞鼠</div>
+    </div>
+    <div id="message">点击任意格开始</div>
+  </main>
+
+<script>
+(() => {
+  const presets = {
+    beginner:{w:9,h:9,m:10},
+    intermediate:{w:16,h:16,m:40},
+    expert:{w:30,h:16,m:99}
+  };
+
+  const svgFace = (mood="idle", large=false) => {
+    const tears = mood==="cry" ? `
+      <path d="M33 49 C31 56 31 60 34 63 C37 60 37 56 35 49" fill="#86d6ee"/>
+      <path d="M67 49 C65 56 65 60 68 63 C71 60 71 56 69 49" fill="#86d6ee"/>` : "";
+    const eyes = mood==="happy"
+      ? `<path d="M30 44 Q36 49 42 44" fill="none" stroke="#342f2e" stroke-width="4" stroke-linecap="round"/>
+         <path d="M58 44 Q64 49 70 44" fill="none" stroke="#342f2e" stroke-width="4" stroke-linecap="round"/>`
+      : `<ellipse cx="36" cy="44" rx="5" ry="${mood==="cry"?7:5}" fill="#342f2e"/>
+         <ellipse cx="64" cy="44" rx="5" ry="${mood==="cry"?7:5}" fill="#342f2e"/>
+         <circle cx="34" cy="42" r="1.5" fill="#fff"/><circle cx="62" cy="42" r="1.5" fill="#fff"/>`;
+    const mouth = mood==="happy"
+      ? `<path d="M46 55 Q50 61 54 55 Q54 68 50 68 Q46 68 46 55" fill="#f0879f" stroke="#342f2e" stroke-width="3" stroke-linejoin="round"/>`
+      : mood==="cry"
+      ? `<path d="M44 60 Q50 54 56 60" fill="none" stroke="#342f2e" stroke-width="3" stroke-linecap="round"/>`
+      : `<path d="M45 57 Q50 62 55 57" fill="none" stroke="#342f2e" stroke-width="3" stroke-linecap="round"/>`;
+    const arms = large ? `<path d="M23 62 Q12 57 9 48" fill="none" stroke="#342f2e" stroke-width="4" stroke-linecap="round"/>
+      <path d="M77 62 Q88 57 91 48" fill="none" stroke="#342f2e" stroke-width="4" stroke-linecap="round"/>` : "";
+    return `<svg viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M23 24 Q22 12 31 13 Q36 13 38 20 Q50 17 62 20 Q64 13 70 13 Q79 13 77 25
+      Q88 35 86 55 Q84 80 66 87 Q50 94 34 87 Q16 80 14 56 Q12 36 23 24Z"
+      fill="#fffdfa" stroke="#342f2e" stroke-width="4" stroke-linejoin="round"/>
+      ${arms}
+      ${eyes}${tears}
+      <ellipse cx="28" cy="56" rx="9" ry="6" fill="#f6a1b5" opacity=".75"/>
+      <ellipse cx="72" cy="56" rx="9" ry="6" fill="#f6a1b5" opacity=".75"/>
+      ${mouth}
+      <path d="M48 52 Q50 54 52 52" fill="none" stroke="#342f2e" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>`;
+  };
+
+  const svgMouse = (wrong=false) => `<svg viewBox="0 0 100 100" aria-hidden="true">
+    <path d="M22 28 Q12 12 26 9 Q36 8 40 24 Q50 19 60 24 Q64 8 75 9 Q89 12 78 29
+    Q87 40 84 58 Q80 81 62 87 Q50 91 38 87 Q20 81 16 59 Q13 42 22 28Z"
+    fill="#fffdfa" stroke="#342f2e" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M25 28 Q21 18 28 16 Q34 17 36 27" fill="#bfeaf2" stroke="#342f2e" stroke-width="2.5"/>
+    <path d="M64 27 Q66 17 73 16 Q80 19 75 29" fill="#bfeaf2" stroke="#342f2e" stroke-width="2.5"/>
+    <path d="M39 24 Q50 18 61 24 L57 49 Q50 53 43 49Z" fill="#bfeaf2" opacity=".92"/>
+    ${wrong ? `<path d="M30 43 L40 49 M40 43 L30 49 M60 43 L70 49 M70 43 L60 49" stroke="#342f2e" stroke-width="4" stroke-linecap="round"/>`
+            : `<ellipse cx="36" cy="46" rx="5" ry="6" fill="#342f2e"/><ellipse cx="64" cy="46" rx="5" ry="6" fill="#342f2e"/>
+               <circle cx="34" cy="44" r="1.4" fill="#fff"/><circle cx="62" cy="44" r="1.4" fill="#fff"/>`}
+    <ellipse cx="28" cy="58" rx="8" ry="5" fill="#f4a0b4" opacity=".8"/>
+    <ellipse cx="72" cy="58" rx="8" ry="5" fill="#f4a0b4" opacity=".8"/>
+    <path d="M45 58 Q50 64 55 58" fill="none" stroke="#342f2e" stroke-width="3" stroke-linecap="round"/>
+    <path d="M47 53 Q50 55 53 53" fill="none" stroke="#342f2e" stroke-width="2" stroke-linecap="round"/>
+  </svg>`;
+
+  const boardEl = document.getElementById("board");
+  const difficultyEl = document.getElementById("difficulty");
+  const remainingEl = document.getElementById("remaining");
+  const timerEl = document.getElementById("timer");
+  const messageEl = document.getElementById("message");
+  const markModeEl = document.getElementById("markMode");
+  const statusButton = document.getElementById("statusButton");
+  const overlay = document.getElementById("overlay");
+  const resultTitle = document.getElementById("resultTitle");
+  const resultArt = document.getElementById("resultArt");
+  const resultCopy = document.getElementById("resultCopy");
+  const resultTime = document.getElementById("resultTime");
+
+  document.getElementById("brandIcon").innerHTML = svgFace("idle");
+  document.getElementById("legendMouse").innerHTML = svgMouse(false);
+
+  let width=9,height=9,mineTotal=10,cells=[],started=false,ended=false,marks=0,revealed=0,seconds=0,timerId=null;
+
+  const fmt = n => String(Math.max(0,Math.min(999,n))).padStart(3,"0");
+  const idx = (r,c)=>r*width+c;
+
+  function around(i){
+    const r=Math.floor(i/width), c=i%width, out=[];
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+      if(!dr&&!dc) continue;
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<height&&nc>=0&&nc<width) out.push(idx(nr,nc));
+    }
+    return out;
+  }
+
+  function stopTimer(){ if(timerId){clearInterval(timerId);timerId=null;} }
+  function startTimer(){
+    if(timerId) return;
+    timerId=setInterval(()=>{
+      seconds=Math.min(999,seconds+1);
+      timerEl.textContent=fmt(seconds);
+      if(seconds===999) stopTimer();
+    },1000);
+  }
+
+  function updateHud(){
+    remainingEl.textContent=fmt(mineTotal-marks);
+    timerEl.textContent=fmt(seconds);
+  }
+
+  function setStatus(mood){
+    statusButton.innerHTML=svgFace(mood);
+  }
+
+  function placeMines(first){
+    const forbidden=new Set([first,...around(first)]);
+    const pool=[];
+    for(let i=0;i<cells.length;i++) if(!forbidden.has(i)) pool.push(i);
+    for(let i=pool.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]]=[pool[j],pool[i]];
+    }
+    pool.slice(0,mineTotal).forEach(i=>cells[i].mine=true);
+    cells.forEach((cell,i)=>cell.near=around(i).filter(n=>cells[n].mine).length);
+  }
+
+  function render(i){
+    const c=cells[i], el=c.el;
+    el.className="cell";
+    el.innerHTML="";
+    if(c.open){
+      el.classList.add("open");
+      if(c.mine){
+        el.innerHTML=svgMouse(false);
+        el.querySelector("svg").classList.add("sprite");
+        if(c.triggered) el.classList.add("triggered");
+      }else if(c.near){
+        el.textContent=c.near;
+        el.classList.add("n"+c.near);
+      }
+    }else if(c.marked){
+      el.classList.add("marked");
+      el.innerHTML=svgMouse(c.wrong);
+      el.querySelector("svg").classList.add("sprite");
+      if(c.wrong) el.classList.add("wrong");
+    }
+  }
+
+  function reveal(i){
+    const c=cells[i];
+    if(ended||c.open||c.marked) return;
+    if(!started){
+      started=true;
+      placeMines(i);
+      startTimer();
+      messageEl.textContent="小心寻找藏起来的飞鼠";
+    }
+    c.open=true; revealed++;
+    if(c.mine){
+      c.triggered=true;
+      render(i);
+      lose();
+      return;
+    }
+    render(i);
+    if(c.near===0){
+      const q=[...around(i)], seen=new Set(q);
+      while(q.length){
+        const n=q.shift(), x=cells[n];
+        if(x.open||x.marked||x.mine) continue;
+        x.open=true; revealed++; render(n);
+        if(x.near===0) around(n).forEach(k=>{if(!seen.has(k)){seen.add(k);q.push(k);}});
+      }
+    }
+    checkWin();
+  }
+
+  function toggleMark(i){
+    const c=cells[i];
+    if(ended||c.open) return;
+    c.marked=!c.marked;
+    marks+=c.marked?1:-1;
+    render(i); updateHud();
+  }
+
+  function chord(i){
+    const c=cells[i];
+    if(!c.open||!c.near||ended) return;
+    const ns=around(i);
+    if(ns.filter(n=>cells[n].marked).length!==c.near) return;
+    ns.forEach(reveal);
+  }
+
+  function showResult(win){
+    resultTitle.textContent=win?"通关啦！":"呜呜……";
+    resultArt.innerHTML=svgFace(win?"happy":"cry",true);
+    resultArt.classList.toggle("sparkle",win);
+    resultCopy.textContent=win?"全部找到了，太厉害了！":"踩到藏起来的飞鼠了……";
+    resultTime.textContent=`用时 ${seconds} 秒`;
+    overlay.classList.add("show");
+  }
+
+  function lose(){
+    ended=true; stopTimer(); setStatus("cry");
+    cells.forEach((c,i)=>{
+      if(c.marked&&!c.mine){c.wrong=true;render(i);}
+      if(c.mine&&!c.marked){c.open=true;render(i);}
+    });
+    messageEl.textContent="失败了，再试一次吧";
+    setTimeout(()=>showResult(false),280);
+  }
+
+  function checkWin(){
+    if(ended||revealed!==width*height-mineTotal) return;
+    ended=true; stopTimer(); setStatus("happy");
+    cells.forEach((c,i)=>{
+      if(c.mine&&!c.marked){c.marked=true;marks++;render(i);}
+    });
+    updateHud();
+    messageEl.textContent="全部飞鼠都找到了";
+    setTimeout(()=>showResult(true),180);
+  }
+
+  function newGame(){
+    stopTimer();
+    const p=presets[difficultyEl.value];
+    width=p.w;height=p.h;mineTotal=p.m;
+    cells=[];started=false;ended=false;marks=0;revealed=0;seconds=0;
+    boardEl.replaceChildren();
+    overlay.classList.remove("show");
+    setStatus("idle");
+    messageEl.textContent="点击任意格开始";
+    const size=width>=25?24:width>=16?28:34;
+    document.documentElement.style.setProperty("--cell",size+"px");
+    boardEl.style.gridTemplateColumns=`repeat(${width},var(--cell))`;
+    for(let i=0;i<width*height;i++){
+      const el=document.createElement("button");
+      el.type="button";el.className="cell";el.dataset.i=i;
+      el.setAttribute("role","gridcell");
+      el.setAttribute("aria-label","未探索的格子");
+      boardEl.appendChild(el);
+      cells.push({mine:false,near:0,open:false,marked:false,wrong:false,triggered:false,el});
+    }
+    updateHud();
+  }
+
+  boardEl.addEventListener("click",e=>{
+    const el=e.target.closest(".cell"); if(!el) return;
+    const i=Number(el.dataset.i);
+    if(markModeEl.checked) toggleMark(i);
+    else if(cells[i].open) chord(i);
+    else reveal(i);
+  });
+  boardEl.addEventListener("contextmenu",e=>{
+    const el=e.target.closest(".cell"); if(!el) return;
+    e.preventDefault(); toggleMark(Number(el.dataset.i));
+  });
+
+  document.getElementById("newGame").addEventListener("click",newGame);
+  document.getElementById("again").addEventListener("click",newGame);
+  statusButton.addEventListener("click",newGame);
+  difficultyEl.addEventListener("change",newGame);
+
+  newGame();
+})();
+</script>
+</body>
+</html>
