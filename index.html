@@ -121,7 +121,7 @@ let gestureMode="",gestureMoved=false,gestureStartX=0,gestureStartY=0,startViewX
 let pinchStartDistance=0,pinchStartScale=1,pinchWorldX=0,pinchWorldY=0;
 let longPressTimer=null,longPressCell=null,longPressStartX=0,longPressStartY=0,longPressTriggered=false;
 let pressedCell=null,pressedPointerId=null;
-let suppressBoardClick=false,lastGestureAt=0;
+let suppressBoardClick=false,lastGestureAt=0,lastTouchLongPressAt=0,lastPointerType="";
 function cellBaseSize(){return width>=25?24:width>=16?28:34}
 function updateZoomLabel(){zoomLabel.textContent=Math.round(viewScale*100)+"%"}
 function applyView(){boardWrap.style.transform=`translate(${viewX}px,${viewY}px) scale(${viewScale})`;updateZoomLabel();requestAnimationFrame(positionZone)}
@@ -151,11 +151,12 @@ function startLongPress(e){
   const cell=e.target.closest(".cell");if(!cell||e.pointerType==="mouse")return;
   longPressCell=cell;longPressTimer=setTimeout(()=>{
     if(!longPressCell||gestureMoved||activePointers.size!==1)return;
-    longPressTriggered=true;suppressClick();toggleMark(Number(longPressCell.dataset.i));navigator.vibrate?.(25);clearLongPress();
+    longPressTriggered=true;lastTouchLongPressAt=Date.now();suppressClick();toggleMark(Number(longPressCell.dataset.i));navigator.vibrate?.(25);clearLongPress();
   },LONG_PRESS_MS);
 }
 function newGame(){stopTimer();stopQaq();const p=presets[difficultyEl.value];width=p.w;height=p.h;mineTotal=p.m;villainMode=villainModeEl.value;selectedPartners=[...document.querySelectorAll(".partner-check:checked")].map(x=>x.value);partnerStates={};selectedPartners.forEach(k=>partnerStates[k]={used:false,locked:false,failures:0,cooldown:0});cells=[];started=false;ended=false;marks=0;usedAnyMark=false;revealedSafe=0;resolvedMines=0;seconds=0;partnerHelpUsed=false;taobaArmed=false;rollSkillsAttempted=new Set();rollFailed=false;zone=null;zoneActive=false;firstPlayerReveal=true;qaqPresent=false;fastOpenTimes=[];fastTriggerCount=0;chatEl.replaceChildren();boardEl.replaceChildren();overlay.classList.remove("show");setStatus("准备中");markModeEl.checked=false;boardEl.style.gridTemplateColumns=`repeat(${width},var(--cell))`;for(let i=0;i<width*height;i++){const el=document.createElement("button");el.type="button";el.className="cell";el.dataset.i=i;boardEl.appendChild(el);cells.push({mine:false,near:0,open:false,marked:false,wrong:false,triggered:false,resolved:false,source:"",openedBy:"",el})}placeMines();if(villainMode==="normal"){chooseZone(.12,.30);addMessage("普通蘑托车划出了一片猫头保护区。","蘑托车","character")}else if(villainMode==="smug"){chooseZone(.15,.40);addMessage("哈哈，我已经知道你的水平了。","蘑托车","character");addMessage("QAQ丨正在围观。")}else{zoneEl.hidden=true;addMessage("这次挑战的是弱小的蘑托车。蘑托车没有任何技能。")}addMessage(selectedPartners.length?`本局伙伴：${selectedPartners.map(k=>partnerDefs[k].name).join("、")}。`:"馍馍决定独自挑战。馍馍没有携带伙伴。");addMessage("点击任意格开始。");updateHud();renderSkills();resetBoardView()}
 boardShell.addEventListener("pointerdown",e=>{
+  lastPointerType=e.pointerType||"";
   if(e.pointerType==="mouse"&&e.button!==0)return;if(!e.target.closest("#boardWrap"))return;
   boardShell.setPointerCapture?.(e.pointerId);activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});gestureMoved=false;
   if(activePointers.size===1){pressedCell=e.target.closest(".cell");pressedPointerId=e.pointerId}else{pressedCell=null;pressedPointerId=null}
@@ -177,14 +178,22 @@ function finishPointer(e){
   activePointers.delete(e.pointerId);clearLongPress();
   if(gestureMoved||longPressTriggered)suppressClick();
   if(shouldTap){activateCell(pressedCell);suppressClick()}
-  pressedCell=null;pressedPointerId=null;
+  pressedCell=null;pressedPointerId=null;longPressTriggered=false;
+  try{if(boardShell.hasPointerCapture?.(e.pointerId))boardShell.releasePointerCapture(e.pointerId)}catch{}
   if(activePointers.size===1){const p=[...activePointers.values()][0];gestureMode="pan";gestureStartX=p.x;gestureStartY=p.y;startViewX=viewX;startViewY=viewY;gestureMoved=true}
   else if(activePointers.size===0){gestureMode="";gestureMoved=false;boardShell.classList.remove("dragging")}
 }
 boardShell.addEventListener("pointerup",finishPointer);boardShell.addEventListener("pointercancel",finishPointer);
+boardShell.addEventListener("lostpointercapture",e=>{if(activePointers.has(e.pointerId)){activePointers.delete(e.pointerId);clearLongPress();pressedCell=null;pressedPointerId=null;longPressTriggered=false;if(activePointers.size===0){gestureMode="";gestureMoved=false;boardShell.classList.remove("dragging")}}});
+window.addEventListener("blur",()=>{activePointers.clear();clearLongPress();pressedCell=null;pressedPointerId=null;longPressTriggered=false;gestureMode="";gestureMoved=false;boardShell.classList.remove("dragging")});
 boardShell.addEventListener("wheel",e=>{if(!e.target.closest("#boardWrap"))return;e.preventDefault();zoomAt(e.clientX,e.clientY,viewScale*Math.exp(-e.deltaY*.0015))},{passive:false});
 boardEl.addEventListener("click",e=>{if(e.detail!==0||suppressBoardClick||Date.now()-lastGestureAt<450)return;activateCell(e.target.closest(".cell"))});
-boardEl.addEventListener("contextmenu",e=>{const el=e.target.closest(".cell");if(!el)return;e.preventDefault();toggleMark(Number(el.dataset.i))});
+boardEl.addEventListener("contextmenu",e=>{
+  const el=e.target.closest(".cell");if(!el)return;e.preventDefault();
+  const fromTouch=lastPointerType==="touch"||e.sourceCapabilities?.firesTouchEvents===true||Date.now()-lastTouchLongPressAt<1200;
+  if(fromTouch)return;
+  toggleMark(Number(el.dataset.i));
+});
 zoneEl.addEventListener("click",()=>{if(suppressBoardClick||Date.now()-lastGestureAt<450)return;addMessage("这里是猫头保护区，目前不能进入。","蘑托车","character")});
 zoomOutBtn.addEventListener("click",()=>zoomAt(boardShell.getBoundingClientRect().left+boardShell.clientWidth/2,boardShell.getBoundingClientRect().top+boardShell.clientHeight/2,viewScale/1.2));
 zoomInBtn.addEventListener("click",()=>zoomAt(boardShell.getBoundingClientRect().left+boardShell.clientWidth/2,boardShell.getBoundingClientRect().top+boardShell.clientHeight/2,viewScale*1.2));
